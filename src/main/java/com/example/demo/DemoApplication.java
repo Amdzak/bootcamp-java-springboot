@@ -5,10 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.util.concurrent.CompletableFuture;
 
 @SpringBootApplication
 public class DemoApplication implements CommandLineRunner {
@@ -18,7 +15,7 @@ public class DemoApplication implements CommandLineRunner {
 	private final AplicationComponent aplicationComponent;
 	private final AplicationService aplicationService;
 	private final AplicationConfiguration aplicationConfiguration;
-	private final EkaternalLibrary ekaternalLibrary;
+	private final EksternalLibrary eksternalLibrary;
 	private final AsyncService asyncService;
 
 	@Autowired
@@ -27,13 +24,13 @@ public class DemoApplication implements CommandLineRunner {
 	public DemoApplication(
 			AplicationComponent aplicationComponent,
 			AplicationService aplicationService,
-			EkaternalLibrary ekaternalLibrary,
+			EksternalLibrary eksternalLibrary,
 			AplicationConfiguration aplicationConfiguration,
 			AsyncService asyncService
 	){
 		this.aplicationComponent = aplicationComponent;
 		this.aplicationService = aplicationService;
-		this.ekaternalLibrary = ekaternalLibrary;
+		this.eksternalLibrary = eksternalLibrary;
 		this.aplicationConfiguration = aplicationConfiguration;
 		this.asyncService = asyncService;
 	}

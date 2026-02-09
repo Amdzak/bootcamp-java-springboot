@@ -2,11 +2,11 @@ package com.example.demo;
 
 import java.util.UUID;
 
-public class EkaternalLibrary {
+public class EksternalLibrary {
     private final String libraryUniqueId;
     private final String libraryName;
 
-    public EkaternalLibrary(String name){
+    public EksternalLibrary(String name){
         this.libraryName = name;
         this.libraryUniqueId = UUID.randomUUID().toString();
     }
