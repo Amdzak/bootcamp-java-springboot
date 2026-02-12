@@ -1,8 +1,10 @@
 package com.example.bootcamp_day_4.service;
 
+import com.example.bootcamp_day_4.dto.SalesReportResponse;
 import com.example.bootcamp_day_4.entity.StockLog;
 import com.example.bootcamp_day_4.entity.TransactionHistory;
 import com.example.bootcamp_day_4.repository.StockLogRepository;
+import com.example.bootcamp_day_4.repository.TransactionDetailRepository;
 import com.example.bootcamp_day_4.repository.TransactionHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,19 +22,20 @@ public class ReportService {
 
     private final TransactionHistoryRepository transactionHistoryRepository;
     private final StockLogRepository stockLogRepository;
+    private final TransactionDetailRepository transactionDetailRepository;
 
     /**
      * API GET for report sales with date parameter
      * Mengambil semua sejarah transaksi dalam rentang tanggal tertentu
      */
-    public List<TransactionHistory> getSalesReport(LocalDate startDate, LocalDate endDate) {
-        log.info("Generating Sales Report from {} to {}", startDate, endDate);
-
-        List<TransactionHistory> report = transactionHistoryRepository.findByTransactionDateBetween(startDate, endDate);
-
-        log.info("Sales Report generated successfully. Found {} transactions", report.size());
-        return report;
-    }
+//    public List<TransactionHistory> getSalesReport(LocalDate startDate, LocalDate endDate) {
+//        log.info("Generating Sales Report from {} to {}", startDate, endDate);
+//
+//        List<TransactionHistory> report = transactionHistoryRepository.findByTransactionDateBetween(startDate, endDate);
+//
+//        log.info("Sales Report generated successfully. Found {} transactions", report.size());
+//        return report;
+//    }
 
     /**
      * API GET data for stock log report with date parameter
@@ -50,5 +53,10 @@ public class ReportService {
 
         log.info("Stock Log Report generated successfully. Found {} log entries", logs.size());
         return logs;
+    }
+
+    public List<SalesReportResponse> getSalesReport(LocalDate startDate, LocalDate endDate) {
+        log.info("Generating sales report from {} to {}", startDate, endDate);
+        return transactionDetailRepository.getSalesReport(startDate, endDate);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.bootcamp_day_4.controller;
 
+import com.example.bootcamp_day_4.dto.SalesReportResponse;
 import com.example.bootcamp_day_4.dto.WebResponse;
 import com.example.bootcamp_day_4.entity.StockLog;
 import com.example.bootcamp_day_4.entity.TransactionHistory;
@@ -24,24 +25,25 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    // GET Report Sales
     @GetMapping(path = "/sales", produces = MediaType.APPLICATION_JSON_VALUE)
-    public WebResponse<List<TransactionHistory>> getSalesReport(@RequestParam("start_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,  @RequestParam("end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        log.info("Fetching sales report from {} to {}", startDate, endDate);
-        List<TransactionHistory> report = reportService.getSalesReport(startDate, endDate);
-        return WebResponse.<List<TransactionHistory>>builder()
+    public WebResponse<List<SalesReportResponse>> getSalesReport(@RequestParam(name = "start_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,  @RequestParam(name = "end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        log.info("Request Sales Report from {} to {}", startDate, endDate);
+
+        List<SalesReportResponse> report = reportService.getSalesReport(startDate, endDate);
+
+        return WebResponse.<List<SalesReportResponse>>builder()
                 .message("Success get sales report")
                 .data(report)
                 .build();
     }
 
-    // GET Stock Log Report
     @GetMapping(path = "/stock-logs", produces = MediaType.APPLICATION_JSON_VALUE)
-    public WebResponse<List<StockLog>> getStockLogReport( @RequestParam("start_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,  @RequestParam("end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        log.info("Fetching logs report from {} to {}", startDate, endDate);
+    public WebResponse<List<StockLog>> getStockLogReport( @RequestParam(name = "start_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,  @RequestParam(name = "end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        log.info("Request Stock Log Report from {} to {}", startDate, endDate);
         List<StockLog> logs = reportService.getStockLogReport(startDate, endDate);
+
         return WebResponse.<List<StockLog>>builder()
-                .message("Success get logs report")
+                .message("Success get stock log report")
                 .data(logs)
                 .build();
     }
