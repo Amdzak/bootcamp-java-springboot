@@ -1,5 +1,6 @@
 package com.example.bootcamp_day_4.consumer;
 
+import com.example.bootcamp_day_4.dto.TransactionKafkaMessage;
 import com.example.bootcamp_day_4.entity.*;
 import com.example.bootcamp_day_4.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -19,31 +20,25 @@ public class TransactionConsumer {
 
     @KafkaListener(topics = "${app.kafka.topic}", groupId = "${spring.kafka.consumer.group-id}")
     @Transactional
-    public void consumeTransaction(TransactionHistory transactionFromKafka) {
-        log.info("Consumer received transaction ID: {}", transactionFromKafka.getId());
+    public void consumeTransaction(TransactionKafkaMessage message) {
+        log.info("Consumer received Fat Message for ID: {}", message.getId());
 
-        // Get detail transaction from database where ID Kafka sended
-        var details = transactionDetailRepository.findByTransactionId(transactionFromKafka.getId());
+        for (var item : message.getItems()) {
+            Product product = productRepository.findById(item.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        for (TransactionDetail detail : details) {
-            Product product = detail.getProduct();
-
-            // Update stock
-            int oldStock = product.getCurrentStock();
-            int newStock = oldStock - detail.getQty();
+            // Update Stock
+            int newStock = product.getCurrentStock() - item.getQty();
             product.setCurrentStock(newStock);
             productRepository.save(product);
 
-            log.info("Updated Stock for {}: {} -> {}", product.getProductName(), oldStock, newStock);
-
-            // Create stock log with type SALE
-            StockLog log = new StockLog();
-            log.setProduct(product);
-            log.setQuantityChange(-detail.getQty());
-            log.setLogType("SALE");
-            stockLogRepository.save(log);
+            // Insert Stock Log
+            StockLog logEntry = new StockLog();
+            logEntry.setProduct(product);
+            logEntry.setQuantityChange(-item.getQty());
+            logEntry.setLogType("SALE");
+            stockLogRepository.save(logEntry);
         }
-
-        log.info("All DB Updates completed by Consumer");
+        log.info("Inventory updated without extra DB queries!");
     }
 }

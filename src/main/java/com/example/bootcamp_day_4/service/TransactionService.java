@@ -1,6 +1,7 @@
 package com.example.bootcamp_day_4.service;
 
 import com.example.bootcamp_day_4.dto.TransactionItemRequest;
+import com.example.bootcamp_day_4.dto.TransactionKafkaMessage;
 import com.example.bootcamp_day_4.dto.TransactionRequest;
 import com.example.bootcamp_day_4.entity.Product;
 import com.example.bootcamp_day_4.entity.TransactionDetail;
@@ -11,6 +12,9 @@ import com.example.bootcamp_day_4.repository.TransactionHistoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +50,7 @@ public class TransactionService {
         TransactionHistory savedHistory = transactionHistoryRepository.save(history);
 
         BigDecimal grandTotal = BigDecimal.ZERO;
+        List<TransactionDetail> details = new ArrayList<>();
 
         // Save detail transaction
         for (TransactionItemRequest item : request.getItems()) {
@@ -67,14 +72,28 @@ public class TransactionService {
             detail.setPrice(product.getPrice());
             detail.setTotalPrice(subTotal);
             transactionDetailRepository.save(detail);
+            details.add(detail);
         }
 
         savedHistory.setTotalPrice(grandTotal);
         transactionHistoryRepository.save(savedHistory);
 
+        // Build transaction event payload for Kafka publishing
+        TransactionKafkaMessage kafkaMessage = TransactionKafkaMessage.builder()
+                .id(savedHistory.getId())
+                .transactionDate(savedHistory.getTransactionDate().toString())
+                .totalPrice(savedHistory.getTotalPrice())
+                .items(details.stream().map(d -> TransactionKafkaMessage.TransactionItemMessage.builder()
+                        .productId(d.getProduct().getId())
+                        .productName(d.getProduct().getProductName())
+                        .qty(d.getQty())
+                        .price(d.getPrice())
+                        .build()).toList())
+                .build();
+
         // Sending data to kafka
         try {
-            kafkaTemplate.send(kafkaTopicName, savedHistory.getId().toString(), savedHistory);
+            kafkaTemplate.send(kafkaTopicName, savedHistory.getId().toString(), kafkaMessage);
             log.info(" Message sent to Kafka for Transaction ID: {}", savedHistory.getId());
         } catch (Exception e) {
             log.error("Failed to send to Kafka: {}", e.getMessage());
