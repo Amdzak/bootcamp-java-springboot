@@ -21,16 +21,18 @@ public class TransactionConsumer {
     @KafkaListener(topics = "${app.kafka.topic}", groupId = "${spring.kafka.consumer.group-id}")
     @Transactional
     public void consumeTransaction(TransactionKafkaMessage message) {
-        log.info("Consumer received Fat Message for ID: {}", message.getId());
+        log.info("Consumer received Message for ID: {}", message.getId());
 
         for (var item : message.getItems()) {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 
             // Update Stock
-            int newStock = product.getCurrentStock() - item.getQty();
+            int oldStock = product.getCurrentStock();
+            int newStock = oldStock - item.getQty();
             product.setCurrentStock(newStock);
             productRepository.save(product);
+            log.info("Updated Stock for {}: {} -> {}", product.getProductName(), oldStock, newStock);
 
             // Insert Stock Log
             StockLog logEntry = new StockLog();
@@ -39,6 +41,6 @@ public class TransactionConsumer {
             logEntry.setLogType("SALE");
             stockLogRepository.save(logEntry);
         }
-        log.info("Inventory updated without extra DB queries!");
+        log.info("Inventory updated ");
     }
 }
