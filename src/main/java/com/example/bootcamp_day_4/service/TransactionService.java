@@ -10,6 +10,7 @@ import com.example.bootcamp_day_4.repository.TransactionDetailRepository;
 import com.example.bootcamp_day_4.repository.TransactionHistoryRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,11 +22,11 @@ import org.springframework.web.server.ResponseStatusException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TransactionService {
 
-    private final static Logger logger = LoggerFactory.getLogger(TransactionService.class);
     private final TransactionHistoryRepository transactionHistoryRepository;
     private final TransactionDetailRepository transactionDetailRepository;
     private final ProductRepository productRepository;
@@ -36,9 +37,9 @@ public class TransactionService {
 
     @Transactional
     public void createTransaction(TransactionRequest request) {
-        logger.info("Step 1: Validating and Saving Transaction Header");
+        log.info("Step 1: Validating and Saving Transaction Header");
 
-        // 1. Simpan Header Transaksi (Status: PENDING/CREATED)
+        // Save header transaction (Status: PENDING/CREATED)
         TransactionHistory history = new TransactionHistory();
         history.setTransactionDate(LocalDate.now());
         history.setTotalPrice(BigDecimal.ZERO);
@@ -46,12 +47,12 @@ public class TransactionService {
 
         BigDecimal grandTotal = BigDecimal.ZERO;
 
-        // 2. Simpan Detail Transaksi & Validasi awal
+        // Save detail transaction
         for (TransactionItemRequest item : request.getItems()) {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
 
-            // Validasi stok di awal (biar tidak kirim sampah ke Kafka)
+            // Validate stock
             if (product.getCurrentStock() < item.getQuantity()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Out of stock");
             }
@@ -71,13 +72,12 @@ public class TransactionService {
         savedHistory.setTotalPrice(grandTotal);
         transactionHistoryRepository.save(savedHistory);
 
-        // 3. Step 2 di gambar: Kirim data ke Kafka (PENTING!)
+        // Sending data to kafka
         try {
-            // Kita kirim savedHistory yang sudah punya ID dan Detail
             kafkaTemplate.send(kafkaTopicName, savedHistory.getId().toString(), savedHistory);
-            logger.info("Step 2: Message sent to Kafka for Transaction ID: {}", savedHistory.getId());
+            log.info(" Message sent to Kafka for Transaction ID: {}", savedHistory.getId());
         } catch (Exception e) {
-            logger.error("Failed to send to Kafka: {}", e.getMessage());
+            log.error("Failed to send to Kafka: {}", e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Kafka Error");
         }
     }

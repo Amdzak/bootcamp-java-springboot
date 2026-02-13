@@ -39,6 +39,9 @@ public class Product {
 
     private BigDecimal price;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     @Column(name="created_at", updatable = false)
     private LocalDateTime createdAt;
 

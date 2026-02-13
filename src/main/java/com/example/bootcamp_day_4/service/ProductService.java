@@ -13,19 +13,19 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Service
 public class ProductService {
-    private final static Logger logger = LoggerFactory.getLogger(ProductService.class);
 
     @Autowired
     private ProductRepository productRepository;
@@ -44,7 +44,7 @@ public class ProductService {
 
     @Transactional
     public void createProduct(ProductRequest productRequest) {
-        logger.info("Starting to create product with SKU: {}", productRequest.getSku());
+        log.info("Starting to create product with SKU: {}", productRequest.getSku());
 
         validate(productRequest);
 
@@ -71,18 +71,19 @@ public class ProductService {
 
         productRepository.save(product);
 
-        // 5. Catat Log Stok Awal (Sesuai dokumen: PURCHASE/ADJUSTMENT)
-        StockLog log = new StockLog();
-        log.setProduct(product);
-        log.setQuantityChange(productRequest.getCurrentStock());
-        log.setLogType("PURCHASE");
-        stockLogRepository.save(log);
+        // Create stock log with type PURCHASE
+        StockLog stockLog = new StockLog();
+        stockLog.setProduct(product);
+        stockLog.setQuantityChange(productRequest.getCurrentStock());
+        stockLog.setLogType("PURCHASE");
+        stockLogRepository.save(stockLog);
 
-        logger.info("Product created successfully with ID: {}", product.getId());
+        log.info("Product created successfully with ID: {}", product.getId());
     }
 
     @Transactional
     public void adjustStock(Long productId, Integer actualStock) {
+        log.info("Starting to adjust stock with id: {}",productId);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
 
@@ -90,61 +91,63 @@ public class ProductService {
 
         if (discrepancy == 0) return;
 
-        // 1. Update stok produk ke angka fisik yang baru
+        // Update stock product
         product.setCurrentStock(actualStock);
         productRepository.save(product);
 
-        // 2. Catat ke Stock Log dengan tipe ADJUSTMENT
-        StockLog log = new StockLog();
-        log.setProduct(product);
-        log.setQuantityChange(discrepancy);
-        log.setLogType("ADJUSTMENT");
-        stockLogRepository.save(log);
+        // Create stock log with type ADJUSTMENT
+        StockLog stockLog = new StockLog();
+        stockLog.setProduct(product);
+        stockLog.setQuantityChange(discrepancy);
+        stockLog.setLogType("ADJUSTMENT");
+        stockLogRepository.save(stockLog);
 
-        logger.info("Stock adjusted for {}. Discrepancy: {}", product.getProductName(), discrepancy);
+        log.info("Stock adjusted for {}. Discrepancy: {}", product.getProductName(), discrepancy);
     }
 
     @Transactional
     public void purchaseStock(Long productId, Integer quantityReceived) {
+        log.info("Starting to create add new product with id: {}", productId);
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
 
-        // 1. Tambahkan stok yang ada dengan stok baru yang datang
+        // Add stock from supplier
         int oldStock = product.getCurrentStock();
         product.setCurrentStock(oldStock + quantityReceived);
         productRepository.save(product);
 
-        // 2. Catat ke Stock Log dengan tipe PURCHASE
-        StockLog log = new StockLog();
-        log.setProduct(product);
-        log.setQuantityChange(quantityReceived);
-        log.setLogType("PURCHASE");
-        stockLogRepository.save(log);
+        // Cretae stock log with type PURCHASE
+        StockLog stockLog = new StockLog();
+        stockLog.setProduct(product);
+        stockLog.setQuantityChange(quantityReceived);
+        stockLog.setLogType("PURCHASE");
+        stockLogRepository.save(stockLog);
 
-        logger.info("Purchase successful for {}. Added: {}, New Total: {}",
+        log.info("Purchase successful for {}. Added: {}, New Total: {}",
                 product.getProductName(), quantityReceived, product.getCurrentStock());
     }
 
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productRepository.findByDeletedAtIsNull();
     }
 
-    public Product getProductById(Long id) {
-        return productRepository.findById(id)
+    public Product getProductById(Long productId) {
+        return productRepository.findById(productId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
     }
 
     @Transactional
-    public void updateProductById(Long id, ProductRequest request) {
+    public void updateProductById(Long productId, ProductRequest request) {
+        log.info("Starting to update product with id: {}",productId);
         validate(request);
-        Product product = getProductById(id);
+        Product product = getProductById(productId);
 
-        // Update
+        // Update product
         product.setProductName(request.getProductName());
         product.setPrice(request.getPrice());
         product.setSku(request.getSku());
 
-        // Update relasi jika ID berubah
+        // Update relation where ID change
         if (!product.getCategory().getId().equals(request.getCategoryId())) {
             Category category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found"));
@@ -152,17 +155,17 @@ public class ProductService {
         }
 
         productRepository.save(product);
-        logger.info("Product updated: {}", id);
+        log.info("Product updated: {}", productId);
     }
 
     @Transactional
-    public void deleteProductById(Long id) {
-        Product product = getProductById(id);
-        productRepository.delete(product);
-        logger.info("Product deleted: {}", id);
+    public void deleteProductById(Long productId) {
+        Product product = productRepository.findById(productId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        product.setDeletedAt(LocalDateTime.now());
+        log.info("Product deleted: {}", productId);
     }
 
-    // Helper function (Sama seperti gaya bootcamp kamu)
+    // Helper function
     private void validate(ProductRequest productRequest) {
         Set<ConstraintViolation<ProductRequest>> violation = validator.validate(productRequest);
         if (!violation.isEmpty()){

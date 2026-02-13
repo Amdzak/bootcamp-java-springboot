@@ -3,7 +3,6 @@ package com.example.bootcamp_day_4.controller;
 import com.example.bootcamp_day_4.dto.SalesReportResponse;
 import com.example.bootcamp_day_4.dto.WebResponse;
 import com.example.bootcamp_day_4.entity.StockLog;
-import com.example.bootcamp_day_4.entity.TransactionHistory;
 import com.example.bootcamp_day_4.service.ReportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +24,7 @@ public class ReportController {
 
     private final ReportService reportService;
 
+    // Generate sales report for a specified date range
     @GetMapping(path = "/sales", produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<List<SalesReportResponse>> getSalesReport(@RequestParam(name = "start_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,  @RequestParam(name = "end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("Request Sales Report from {} to {}", startDate, endDate);
@@ -37,6 +37,7 @@ public class ReportController {
                 .build();
     }
 
+    // Generate stock movement report for a specified date range
     @GetMapping(path = "/stock-logs", produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<List<StockLog>> getStockLogReport( @RequestParam(name = "start_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,  @RequestParam(name = "end_date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         log.info("Request Stock Log Report from {} to {}", startDate, endDate);

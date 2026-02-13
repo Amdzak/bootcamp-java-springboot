@@ -9,9 +9,7 @@ import java.util.List;
 
 @Repository
 public interface StockLogRepository extends JpaRepository<StockLog, Long> {
-    // Filter berdasarkan range tanggal dan tipe log (SALE/PURCHASE/ADJUSTMENT)
-    List<StockLog> findByLogTypeAndCreatedAtBetween(String logType, LocalDateTime start, LocalDateTime end);
 
-    // Untuk kebutuhan Report Stock Log berdasarkan range tanggal
+    // Retrieve stock movement logs within a specified date range for reporting
     List<StockLog> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 }

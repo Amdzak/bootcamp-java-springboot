@@ -10,6 +10,7 @@ public class KafkaConfiguration {
     @Value("${app.kafka.topic}")
     private String topicName;
 
+    // Create kafka topic with 3 partition
     @Bean
     public NewTopic createTopic() {
         return TopicBuilder.name(topicName)

@@ -9,9 +9,11 @@ import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
     // Search by SKU
     Optional<Product> findBySku(String sku);
 
-    // Find product less than
-    List<Product> findByCurrentStockLessThan(Integer threshold);
+    // Find non-deleted products
+    List<Product> findByDeletedAtIsNull();
+
 }

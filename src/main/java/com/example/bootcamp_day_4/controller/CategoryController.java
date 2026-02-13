@@ -14,12 +14,12 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/categories")
-@RequiredArgsConstructor // Menghandle inject CategoryService secara otomatis
+@RequiredArgsConstructor
 public class CategoryController {
 
     private final CategoryService categoryService;
 
-    // 1. CREATE
+    // Create categories
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> create(@RequestBody CategoryRequest request) {
         log.info("Create categories with name:{}", request.getCategoryName());
@@ -31,7 +31,7 @@ public class CategoryController {
                 .build();
     }
 
-    // 2. GET ALL
+    // Get all categories
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<List<Category>> getAll() {
         log.info("Fetching all categories");
@@ -43,7 +43,7 @@ public class CategoryController {
                 .build();
     }
 
-    // 3. UPDATE
+    // Update category by id
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> update(@PathVariable Long id, @RequestBody CategoryRequest request) {
         log.info("Update category id={}", id);
@@ -55,7 +55,7 @@ public class CategoryController {
                 .build();
     }
 
-    // 4. DELETE
+    // Delete categories by id
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> delete(@PathVariable Long id) {
         log.warn("Deleteing categori id={}", id);

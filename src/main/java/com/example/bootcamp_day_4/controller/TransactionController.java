@@ -19,6 +19,7 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
+    // Create transaction and publish event to Kafka
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> create(@RequestBody TransactionRequest request) {
         log.info("Create transaction request received | totalItems={}", request.getItems().size());

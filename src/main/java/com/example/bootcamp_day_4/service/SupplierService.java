@@ -1,6 +1,7 @@
 package com.example.bootcamp_day_4.service;
 
 import com.example.bootcamp_day_4.dto.SupplierRequest;
+import com.example.bootcamp_day_4.entity.Product;
 import com.example.bootcamp_day_4.entity.Supplier;
 import com.example.bootcamp_day_4.repository.SupplierRepository;
 import jakarta.transaction.Transactional;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +30,7 @@ public class SupplierService {
     private Validator validator;
 
     public List<Supplier> getAllSuppliers() {
-        return supplierRepository.findAll();
+        return supplierRepository.findByDeletedAtIsNull();
     }
 
     @Transactional
@@ -66,14 +68,11 @@ public class SupplierService {
         logger.info("Supplier with ID: {} updated successfully", id);
     }
 
-    // Delete
     @Transactional
     public void deleteSupplierById(Long id) {
-        logger.info("Attempting to delete supplier with ID: {}", id);
-        Supplier supplier = getSupplierById(id); // Pastikan ada dulu
-
-        supplierRepository.delete(supplier);
-        logger.info("Supplier with ID: {} deleted successfully", id);
+        Supplier supplier = supplierRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        supplier.setDeletedAt(LocalDateTime.now());
+        logger.info("Product deleted: {}", id);
     }
 
     private void validate(Object request) {

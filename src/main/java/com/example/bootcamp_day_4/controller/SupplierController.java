@@ -19,6 +19,7 @@ public class SupplierController {
 
     private final SupplierService supplierService;
 
+    // Create new supplier
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> create(@RequestBody SupplierRequest request) {
         log.info("Create supplier name={}", request.getSupplierName());
@@ -26,6 +27,7 @@ public class SupplierController {
         return WebResponse.<String>builder().message("Success create supplier").data("OK").build();
     }
 
+    // Get all suppliers
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<List<Supplier>> getAll() {
         log.info("Fetching all suppliers");
@@ -35,6 +37,7 @@ public class SupplierController {
                 .build();
     }
 
+    // Get supplier by id
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<Supplier> getById(@PathVariable Long id) {
         log.info("Fetcing supplier id={}", id);
@@ -44,6 +47,7 @@ public class SupplierController {
                 .build();
     }
 
+    // Update supplier by id
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> update(@PathVariable Long id, @RequestBody SupplierRequest request) {
         log.info("Updating supplier id={}", id);
@@ -51,6 +55,7 @@ public class SupplierController {
         return WebResponse.<String>builder().message("Success Update Supplier").data("OK").build();
     }
 
+    // Delete supplier by id
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> delete(@PathVariable Long id) {
         log.warn("Deleting supplier id={}", id);

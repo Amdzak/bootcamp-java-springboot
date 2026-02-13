@@ -19,6 +19,7 @@ public class ProductController {
 
     private final ProductService productService;
 
+    // Create new products (not previously registered)
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> create(@RequestBody ProductRequest request) {
         log.info("Request create product: {}", request.getProductName());
@@ -26,6 +27,7 @@ public class ProductController {
         return WebResponse.<String>builder().message("Success create product").data("OK").build();
     }
 
+    // Get all products
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<List<Product>> getAll() {
         log.info("Fetching all products");
@@ -35,6 +37,7 @@ public class ProductController {
                 .build();
     }
 
+    // Get product by id
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<Product> getById(@PathVariable Long id) {
         log.info("Fetching product with id={}", id);
@@ -44,6 +47,7 @@ public class ProductController {
                 .build();
     }
 
+    // Update product by id
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> update(@PathVariable Long id, @RequestBody ProductRequest request) {
         log.info("Updating product id={}", id);
@@ -51,6 +55,7 @@ public class ProductController {
         return WebResponse.<String>builder().message("Success Update Product").data("OK").build();
     }
 
+    // Adjust stock product by id
     @PatchMapping(path = "/{id}/adjust-stock")
     public WebResponse<String> adjustStock(@PathVariable Long id, @RequestParam("actual_stock") Integer actualStock) {
         log.warn("Adjust stock with id={}", id);
@@ -61,6 +66,7 @@ public class ProductController {
                 .build();
     }
 
+    // Increase product stock from supplier delivery
     @PostMapping(path = "/{id}/purchase")
     public WebResponse<String> purchase(@PathVariable Long id, @RequestParam("quantity") Integer quantity) {
         log.info("Purchase stock with id={}", id);
@@ -71,6 +77,7 @@ public class ProductController {
                 .build();
     }
 
+    // Delete product by id
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public WebResponse<String> delete(@PathVariable Long id) {
         log.warn("Deleting product id={}", id);

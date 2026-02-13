@@ -12,16 +12,15 @@ import java.util.List;
 
 @Repository
 public interface TransactionDetailRepository extends JpaRepository<TransactionDetail, Long> {
+
+    // Retrieve transaction line items associated with a specific transaction
     List<TransactionDetail> findByTransactionId(Long transactionId);
 
-    // Tambahan: Untuk melihat performa penjualan produk tertentu
-    List<TransactionDetail> findByProductId(Long productId);
-
+    // Generate sales report data within the specified date range
     @Query("SELECT new com.example.bootcamp_day_4.dto.SalesReportResponse(" +
             "d.transaction.id, d.transaction.transactionDate, p.productName, " +
             "d.qty, d.price, d.totalPrice) " +
             "FROM TransactionDetail d JOIN d.product p " +
             "WHERE d.transaction.transactionDate BETWEEN :startDate AND :endDate")
-    List<SalesReportResponse> getSalesReport(@Param("startDate") LocalDate startDate,
-                                             @Param("endDate") LocalDate endDate);
+    List<SalesReportResponse> getSalesReport(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }
